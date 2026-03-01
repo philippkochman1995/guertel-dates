@@ -1,0 +1,66 @@
+[
+  {
+    "location": "Chelsea Wien",
+    "title": "DIVES",
+    "description": "Garage-Pop aus Stuttgart. Energiegeladene Live-Show mit verzerrten Gitarren und eingängigen Melodien.",
+    "date": "2026-03-01",
+    "time": "20:00",
+    "event_url": "https://www.chelsea.co.at/concerts.php"
+  },
+  {
+    "location": "Chelsea Wien",
+    "title": "PALE BLUE EYES",
+    "description": "Post-Punk und Shoegaze aus Wien. Atmosphärische Klanglandschaften und treibende Rhythmen.",
+    "date": "2026-03-01",
+    "time": "21:30",
+    "event_url": "https://www.chelsea.co.at/concerts.php"
+  },
+  {
+    "location": "Chelsea Wien",
+    "title": "MELT DOWNER",
+    "description": "Psychedelischer Noise-Rock. Laut, rau und kompromisslos.",
+    "date": "2026-03-02",
+    "time": "20:00",
+    "event_url": "https://www.chelsea.co.at/concerts.php"
+  },
+  {
+    "location": "Chelsea Wien",
+    "title": "SCHAPKA",
+    "description": "Elektronische Klänge treffen auf analoge Instrumente. Ein Experiment zwischen Club und Konzert.",
+    "date": "2026-03-03",
+    "time": "21:00",
+    "event_url": "https://www.chelsea.co.at/concerts.php"
+  },
+  {
+    "location": "Chelsea Wien",
+    "title": "LUCID EXPRESS",
+    "description": "Dream-Pop aus Hongkong. Sanfte Vocals über schimmernde Gitarrentexturen.",
+    "date": "2026-03-05",
+    "time": "20:30",
+    "event_url": "https://www.chelsea.co.at/concerts.php"
+  },
+  {
+    "location": "Chelsea Wien",
+    "title": "BÖSE NACHBARN",
+    "description": "Deutschsprachiger Punk mit Haltung. Schnell, direkt, keine Kompromisse.",
+    "date": "2026-03-05",
+    "time": "22:00",
+    "event_url": "https://www.chelsea.co.at/concerts.php"
+  },
+  {
+    "location": "Chelsea Wien",
+    "title": "KEROSIN",
+    "description": "Experimenteller Post-Punk aus Graz. Düstere Basslinien und drängende Vocals.",
+    "date": "2026-03-07",
+    "time": "20:00",
+    "event_url": "https://www.chelsea.co.at/concerts.php"
+  },
+  {
+    "location": "Chelsea Wien",
+    "title": "EMPTY COUNTRY",
+    "description": "Indie-Rock mit Country-Einflüssen aus Brooklyn. Songwriting für die Nacht.",
+    "date": "2026-03-08",
+    "time": "21:00",
+    "event_url": "https://www.chelsea.co.at/concerts.php"
+  }
+]
