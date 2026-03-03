@@ -1,4 +1,28 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+
+@font-face {
+  font-family: "Apfel Grotezk Fett";
+  src: url("/fonts/apfel-grotezk-fett.otf") format("opentype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Apfel Grotezk";
+  src: url("/fonts/apfel-grotezk-regular.otf") format("opentype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Apfel Grotezk Mittel";
+  src: url("../font/Apfel Grotezk Font/ApfelGrotezk-Mittel.otf") format("opentype");
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+}
 
 @tailwind base;
 @tailwind components;
@@ -6,66 +30,44 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 0%;
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
+    --card: 0 0% 0%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
+    --popover: 0 0% 0%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 0 0% 0%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
 
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 0%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 40%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 78%;
 
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 0%;
+    --accent: 0 0% 12%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 0 0% 0%;
 
-    --border: 0 0% 92%;
-    --input: 0 0% 92%;
-    --ring: 0 0% 0%;
+    --border: 0 0% 30%;
+    --input: 0 0% 30%;
+    --ring: 0 0% 100%;
 
     --radius: 0px;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 0 0% 0%;
-    --sidebar-primary: 0 0% 0%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 96%;
-    --sidebar-accent-foreground: 0 0% 0%;
-    --sidebar-border: 0 0% 92%;
-    --sidebar-ring: 0 0% 0%;
-  }
-
-  .dark {
-    --background: 0 0% 0%;
-    --foreground: 0 0% 100%;
-    --card: 0 0% 0%;
-    --card-foreground: 0 0% 100%;
-    --popover: 0 0% 0%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 0 0% 100%;
-    --primary-foreground: 0 0% 0%;
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 60%;
-    --accent: 0 0% 12%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 12%;
-    --input: 0 0% 12%;
-    --ring: 0 0% 100%;
+    --sidebar-background: 0 0% 5%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 12%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 30%;
+    --sidebar-ring: 0 0% 100%;
   }
 }
 
@@ -75,12 +77,28 @@
   }
 
   html {
-    font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    font-size: 16px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   body {
     @apply bg-background text-foreground;
+    line-height: 1.7;
+  }
+
+  h1,
+  h2 {
+    font-family: "Apfel Grotezk Fett", "Apfel Grotezk", "Inter", system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer utilities {
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 }

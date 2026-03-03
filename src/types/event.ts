@@ -5,4 +5,5 @@ export interface Event {
   date: string; // ISO date string YYYY-MM-DD
   time: string;
   event_url: string;
+  image?: string;
 }
