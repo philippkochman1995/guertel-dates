@@ -6,6 +6,7 @@ import { BrowserRouter } from "react-router-dom";
 import AppRoutes from "./AppRoutes";
 
 const queryClient = new QueryClient();
+const basename = import.meta.env.BASE_URL === "/" ? "/" : import.meta.env.BASE_URL.replace(/\/$/, "");
 
 const App = () => {
   return (
@@ -13,7 +14,7 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
+        <BrowserRouter basename={basename}>
           <AppRoutes />
         </BrowserRouter>
       </TooltipProvider>
