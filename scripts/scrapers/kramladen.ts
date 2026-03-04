@@ -590,6 +590,19 @@ function isSociableKitEventUrl(url: string): boolean {
   return /sociablekit\.com|facebook-page-events|data-image\.sociablekit\.com/i.test(url);
 }
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return String(error ?? "");
+}
+
+function isMissingPlaywrightBrowserError(error: unknown): boolean {
+  const message = getErrorMessage(error);
+  return /Executable doesn't exist/i.test(message) && /playwright install/i.test(message);
+}
+
 async function scrapeKramladenWithPlaywright(): Promise<{
   htmlSnapshots: string[];
   payloads: unknown[];
@@ -668,7 +681,12 @@ async function scrapeKramladenWithPlaywright(): Promise<{
 
     await context.close();
   } catch (error) {
-    console.warn("Playwright fallback failed for Kramladen:", error);
+    if (isMissingPlaywrightBrowserError(error)) {
+      console.warn("Playwright fallback unavailable for Kramladen (browser binary missing). Install with: npx playwright install");
+    } else {
+      const firstErrorLine = getErrorMessage(error).split("\n")[0]?.trim();
+      console.warn(`Playwright fallback failed for Kramladen: ${firstErrorLine || "unknown error"}`);
+    }
   } finally {
     if (browser) {
       await browser.close().catch(() => {});
@@ -816,4 +834,6 @@ export const __kramladenInternals = {
   extractSociableKitApiUrls,
   extractEventsFromJsonPayload,
   getHtmlCandidates,
+  getErrorMessage,
+  isMissingPlaywrightBrowserError,
 };

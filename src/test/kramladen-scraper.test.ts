@@ -2,6 +2,15 @@ import { describe, expect, it } from "vitest";
 import { __kramladenInternals } from "../../scripts/scrapers/kramladen";
 
 describe("kramladen scraper", () => {
+  it("detects missing Playwright browser executable errors", () => {
+    const error = new Error(
+      "browserType.launch: Executable doesn't exist at /tmp/chrome\nPlease run: npx playwright install",
+    );
+
+    expect(__kramladenInternals.isMissingPlaywrightBrowserError(error)).toBe(true);
+    expect(__kramladenInternals.isMissingPlaywrightBrowserError(new Error("random failure"))).toBe(false);
+  });
+
   it("parses datetime from ISO-like and english strings", () => {
     expect(__kramladenInternals.parseDateTime("2026-03-07T20:00")).toEqual({
       date: "2026-03-07",
