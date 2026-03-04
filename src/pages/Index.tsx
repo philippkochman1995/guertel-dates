@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronDown } from 'lucide-react';
 import type { Event } from '@/types/event';
@@ -50,7 +50,10 @@ const Index = () => {
     [futureEvents],
   );
   const [hiddenLocations, setHiddenLocations] = useState<string[]>([]);
+  const [draftHiddenLocations, setDraftHiddenLocations] = useState<string[]>([]);
+  const draftHiddenLocationsRef = useRef(draftHiddenLocations);
   const hiddenLocationSet = useMemo(() => new Set(hiddenLocations), [hiddenLocations]);
+  const draftHiddenLocationSet = useMemo(() => new Set(draftHiddenLocations), [draftHiddenLocations]);
   const filteredEvents = useMemo(
     () => futureEvents.filter((event) => !hiddenLocationSet.has(event.location)),
     [futureEvents, hiddenLocationSet],
@@ -87,11 +90,21 @@ const Index = () => {
   }, [groupedEntries]);
   const allAnchorIds = useMemo(() => groupedEntries.map(([date]) => `date-${date}`), [groupedEntries]);
   const [activeAnchorId, setActiveAnchorId] = useState<string>(allAnchorIds[0] ?? '');
-  const areAllLocationsVisible = hiddenLocations.length === 0;
+  const areAllDraftLocationsVisible = draftHiddenLocations.length === 0;
   const [isVenueFilterOpen, setIsVenueFilterOpen] = useState(false);
 
+  const openVenueFilter = () => {
+    setDraftHiddenLocations(hiddenLocations);
+    setIsVenueFilterOpen(true);
+  };
+
+  const closeVenueFilter = () => {
+    setHiddenLocations(draftHiddenLocationsRef.current);
+    setIsVenueFilterOpen(false);
+  };
+
   const toggleAllLocations = () => {
-    setHiddenLocations((previous) => {
+    setDraftHiddenLocations((previous) => {
       if (previous.length === 0) {
         return [...allLocations];
       }
@@ -101,7 +114,7 @@ const Index = () => {
   };
 
   const toggleLocation = (location: string) => {
-    setHiddenLocations((previous) => {
+    setDraftHiddenLocations((previous) => {
       if (previous.includes(location)) {
         return previous.filter((item) => item !== location);
       }
@@ -118,7 +131,7 @@ const Index = () => {
       <div className="mt-4">
         <button
           type="button"
-          onClick={() => setIsVenueFilterOpen(true)}
+          onClick={openVenueFilter}
           className="inline-flex items-center gap-3 rounded-2xl border border-foreground/25 px-4 py-2 bg-background"
         >
           <span className="font-['Inter'] text-[1.05rem] leading-none">Filter venues</span>
@@ -176,6 +189,10 @@ const Index = () => {
   }, [allAnchorIds]);
 
   useEffect(() => {
+    draftHiddenLocationsRef.current = draftHiddenLocations;
+  }, [draftHiddenLocations]);
+
+  useEffect(() => {
     if (!isVenueFilterOpen) {
       return;
     }
@@ -185,6 +202,7 @@ const Index = () => {
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        setHiddenLocations(draftHiddenLocationsRef.current);
         setIsVenueFilterOpen(false);
       }
     };
@@ -280,7 +298,7 @@ const Index = () => {
             <div className="flex justify-end mb-6">
               <button
                 type="button"
-                onClick={() => setIsVenueFilterOpen(false)}
+                onClick={closeVenueFilter}
                 className="font-['Inter'] text-[0.9rem] uppercase tracking-[0.12em] border border-white px-3 py-1 hover:bg-white hover:text-black transition-colors"
               >
                 Close
@@ -291,7 +309,7 @@ const Index = () => {
               type="button"
               onClick={toggleAllLocations}
               className={`mb-5 inline-flex items-center gap-2 border px-3 py-1 text-[0.78rem] uppercase tracking-[0.12em] font-['Inter'] ${
-                areAllLocationsVisible
+                areAllDraftLocationsVisible
                   ? 'border-white bg-white text-black'
                   : 'border-zinc-500 text-zinc-300 bg-zinc-800 hover:bg-zinc-700 hover:text-white'
               }`}
@@ -301,7 +319,7 @@ const Index = () => {
 
             <div className="flex flex-wrap gap-2">
               {allLocations.map((location) => {
-                const isVisible = !hiddenLocationSet.has(location);
+                const isVisible = !draftHiddenLocationSet.has(location);
 
                 return (
                   <button
