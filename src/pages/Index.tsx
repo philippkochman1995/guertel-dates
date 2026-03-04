@@ -126,9 +126,17 @@ const Index = () => {
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <main className="w-full px-5 md:px-0 md:max-w-[700px] md:mx-auto pt-12 md:pt-16 pb-20 flex-1">
         <header className="mb-10">
-          <h1 className="font-['Apfel_Grotezk_Fett'] text-[1.6875rem] leading-none uppercase tracking-[0.05em]">
-            LIVE AM GÜRTEL
-          </h1>
+          <div className="flex items-start justify-between gap-6">
+            <h1 className="font-['Apfel_Grotezk_Fett'] text-[1.6875rem] leading-none uppercase tracking-[0.05em]">
+              LIVE AM GÜRTEL
+            </h1>
+            <Link
+              to="/about"
+              className="font-['Inter'] text-[1.15rem] leading-none font-semibold mt-1 hover:underline"
+            >
+              About
+            </Link>
+          </div>
         </header>
 
         {groupedEvents.size === 0 ? (
