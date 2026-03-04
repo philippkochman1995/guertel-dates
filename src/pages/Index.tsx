@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { ChevronDown } from 'lucide-react';
 import type { Event } from '@/types/event';
 import DaySection from '@/components/DaySection';
 import { getTodayISOInTimeZone, VIENNA_TIME_ZONE } from '@/lib/dates';
@@ -40,10 +41,21 @@ function formatJumpLabel(date: string, todayIso: string, tomorrowIso: string): s
 }
 
 const Index = () => {
-  const groupedEvents = useMemo(() => {
-    const futureEvents = filterFutureEvents(eventsData as Event[], VIENNA_TIME_ZONE).sort(compareEventsChronologically);
-    return groupEventsByDate(futureEvents);
-  }, []);
+  const futureEvents = useMemo(
+    () => filterFutureEvents(eventsData as Event[], VIENNA_TIME_ZONE).sort(compareEventsChronologically),
+    [],
+  );
+  const allLocations = useMemo(
+    () => Array.from(new Set(futureEvents.map((event) => event.location))).sort((a, b) => a.localeCompare(b, 'de')),
+    [futureEvents],
+  );
+  const [hiddenLocations, setHiddenLocations] = useState<string[]>([]);
+  const hiddenLocationSet = useMemo(() => new Set(hiddenLocations), [hiddenLocations]);
+  const filteredEvents = useMemo(
+    () => futureEvents.filter((event) => !hiddenLocationSet.has(event.location)),
+    [futureEvents, hiddenLocationSet],
+  );
+  const groupedEvents = useMemo(() => groupEventsByDate(filteredEvents), [filteredEvents]);
 
   const groupedEntries = Array.from(groupedEvents.entries());
   const todayIso = getTodayISOInTimeZone(VIENNA_TIME_ZONE);
@@ -75,13 +87,54 @@ const Index = () => {
   }, [groupedEntries]);
   const allAnchorIds = useMemo(() => groupedEntries.map(([date]) => `date-${date}`), [groupedEntries]);
   const [activeAnchorId, setActiveAnchorId] = useState<string>(allAnchorIds[0] ?? '');
+  const areAllLocationsVisible = hiddenLocations.length === 0;
+  const [isVenueFilterOpen, setIsVenueFilterOpen] = useState(false);
+
+  const toggleAllLocations = () => {
+    setHiddenLocations((previous) => {
+      if (previous.length === 0) {
+        return [...allLocations];
+      }
+
+      return [];
+    });
+  };
+
+  const toggleLocation = (location: string) => {
+    setHiddenLocations((previous) => {
+      if (previous.includes(location)) {
+        return previous.filter((item) => item !== location);
+      }
+
+      return [...previous, location];
+    });
+  };
+  const renderLocationFilter = () => {
+    if (allLocations.length === 0) {
+      return null;
+    }
+
+    return (
+      <div className="mt-4">
+        <button
+          type="button"
+          onClick={() => setIsVenueFilterOpen(true)}
+          className="inline-flex items-center gap-3 rounded-2xl border border-foreground/25 px-4 py-2 bg-background"
+        >
+          <span className="font-['Inter'] text-[1.05rem] leading-none">Filter venues</span>
+          <ChevronDown className="h-4 w-4" aria-hidden="true" />
+        </button>
+      </div>
+    );
+  };
 
   useEffect(() => {
     if (allAnchorIds.length === 0) {
+      setActiveAnchorId('');
       return;
     }
 
-    const stickyOffsetPx = 160;
+    const stickyOffsetPx = 184;
 
     const updateActiveFromScroll = () => {
       let current = allAnchorIds[0];
@@ -122,6 +175,28 @@ const Index = () => {
     };
   }, [allAnchorIds]);
 
+  useEffect(() => {
+    if (!isVenueFilterOpen) {
+      return;
+    }
+
+    const previousBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsVenueFilterOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.body.style.overflow = previousBodyOverflow;
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [isVenueFilterOpen]);
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <main className="w-full px-5 md:px-0 md:max-w-[700px] md:mx-auto pt-12 md:pt-16 pb-20 flex-1">
@@ -139,10 +214,17 @@ const Index = () => {
           </div>
         </header>
 
-        {groupedEvents.size === 0 ? (
+        {futureEvents.length === 0 ? (
           <p className="text-sm uppercase tracking-widest text-muted-foreground font-normal">
             NO UPCOMING EVENTS
           </p>
+        ) : groupedEvents.size === 0 ? (
+          <>
+            {renderLocationFilter()}
+            <p className="mt-4 text-sm uppercase tracking-widest text-muted-foreground font-normal">
+              NO EVENTS FOR SELECTED LOCATIONS
+            </p>
+          </>
         ) : (
           monthGroups.map((group) => {
             const jumpLinks = group.entries.map(([targetDate]) => ({
@@ -152,7 +234,7 @@ const Index = () => {
 
             return (
               <section key={group.monthLabel}>
-                <div className="sticky top-0 z-30 bg-background mb-8 md:mb-10 pt-2 pb-1">
+                <div className="sticky top-0 z-30 bg-background mb-7 md:mb-8 pt-2 pb-2">
                   <h1 className="font-['Apfel_Grotezk_Fett'] text-[1.6875rem] leading-none uppercase tracking-[0.05em] mb-5">
                     {group.monthLabel}
                   </h1>
@@ -172,6 +254,7 @@ const Index = () => {
                       ))}
                     </div>
                   </nav>
+                  {renderLocationFilter()}
                 </div>
 
                 {group.entries.map(([date, events]) => (
@@ -191,6 +274,55 @@ const Index = () => {
           IMPRINT
         </Link>
       </footer>
+      {isVenueFilterOpen ? (
+        <div className="fixed inset-0 z-50 bg-black text-white">
+          <div className="h-full overflow-y-auto px-5 md:px-0 md:max-w-[700px] md:mx-auto pt-6 pb-10">
+            <div className="flex justify-end mb-6">
+              <button
+                type="button"
+                onClick={() => setIsVenueFilterOpen(false)}
+                className="font-['Inter'] text-[0.9rem] uppercase tracking-[0.12em] border border-white px-3 py-1 hover:bg-white hover:text-black transition-colors"
+              >
+                Close
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={toggleAllLocations}
+              className={`mb-5 inline-flex items-center gap-2 border px-3 py-1 text-[0.78rem] uppercase tracking-[0.12em] font-['Inter'] ${
+                areAllLocationsVisible
+                  ? 'border-white bg-white text-black'
+                  : 'border-zinc-500 text-zinc-300 bg-zinc-800 hover:bg-zinc-700 hover:text-white'
+              }`}
+            >
+              All venues
+            </button>
+
+            <div className="flex flex-wrap gap-2">
+              {allLocations.map((location) => {
+                const isVisible = !hiddenLocationSet.has(location);
+
+                return (
+                  <button
+                    key={location}
+                    type="button"
+                    aria-pressed={isVisible}
+                    onClick={() => toggleLocation(location)}
+                    className={`border px-3 py-2 font-['Inter'] text-[0.9rem] uppercase tracking-[0.08em] transition-colors ${
+                      isVisible
+                        ? 'border-white bg-white text-black'
+                        : 'border-zinc-500 text-zinc-300 bg-zinc-800 hover:bg-zinc-700 hover:text-white'
+                    }`}
+                  >
+                    {location}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };

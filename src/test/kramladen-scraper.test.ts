@@ -152,4 +152,9 @@ describe("kramladen scraper", () => {
       event_url: "https://facebook.com/events/2514592112254443",
     });
   });
+
+  it("normalizes kramladen address locations to venue name", () => {
+    expect(__kramladenInternals.canonicalizeKramladenLocation("U-Bahnbogen 39-40, Wien, Austria")).toBe("Kramladen");
+    expect(__kramladenInternals.canonicalizeKramladenLocation("Kramladen")).toBe("Kramladen");
+  });
 });

@@ -209,6 +209,23 @@ function extractEventId(rawId: string): string {
   return normalizeWhitespace(rawId).split("-")[0]?.replace(/[^\d]/g, "") ?? "";
 }
 
+function canonicalizeKramladenLocation(location: string): string {
+  const normalized = normalizeWhitespace(location);
+  if (!normalized) {
+    return "Kramladen";
+  }
+
+  if (/kramladen/i.test(normalized)) {
+    return "Kramladen";
+  }
+
+  if (/u-?\s*bahnbogen\s*39\s*-\s*40/i.test(normalized)) {
+    return "Kramladen";
+  }
+
+  return normalized;
+}
+
 function extractOverviewEventsFromHtml(html: string, sourceUrl: string): KramladenOverviewEvent[] {
   const $ = cheerio.load(html);
   const events: KramladenOverviewEvent[] = [];
@@ -224,7 +241,7 @@ function extractOverviewEventsFromHtml(html: string, sourceUrl: string): Kramlad
     const parsedDateTime = parseDateTime(dateTimeRaw);
     const venue = normalizeWhitespace(item.find(".--sk-venue").first().text());
     const address = normalizeWhitespace(item.find(".--sk-location").first().text());
-    const location = venue || address || "Kramladen";
+    const location = canonicalizeKramladenLocation(venue || address || "Kramladen");
     const viewOnFacebookHref = normalizeWhitespace(
       item.find(".sk-popup-viewonfb, .sk-event-item-viewonfb").first().attr("href") ?? "",
     );
@@ -459,12 +476,12 @@ function parseDateTimeFromRecord(record: Record<string, unknown>): { date?: stri
 function normalizeLocation(record: Record<string, unknown>): string {
   const directLocation = pickStringFromKeys(record, ["venue", "location", "address"]);
   if (directLocation) {
-    return directLocation;
+    return canonicalizeKramladenLocation(directLocation);
   }
 
   const place = pickNestedValue(record, "place");
   if (place) {
-    return pickStringFromKeys(place, ["name", "title", "address"]) || "Kramladen";
+    return canonicalizeKramladenLocation(pickStringFromKeys(place, ["name", "title", "address"]) || "Kramladen");
   }
 
   return "Kramladen";
@@ -829,6 +846,7 @@ export const __kramladenInternals = {
   parseDateTime,
   decodeHtmlEntities,
   decodeRtfEscapes,
+  canonicalizeKramladenLocation,
   extractOverviewEventsFromHtml,
   extractSociableKitUrls,
   extractSociableKitApiUrls,

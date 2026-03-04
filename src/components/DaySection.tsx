@@ -25,9 +25,9 @@ const DaySection = ({ date, events, anchorId }: DaySectionProps) => {
   const { weekday, day } = getDateBadgeParts(date);
 
   return (
-    <section id={anchorId} className="mb-12 md:mb-16 animate-fade-in scroll-mt-[10rem]" aria-label={`${weekday} ${day}`}>
+    <section id={anchorId} className="mb-12 md:mb-16 animate-fade-in scroll-mt-[11.5rem]" aria-label={`${weekday} ${day}`}>
       <div className="grid grid-cols-[56px_1fr] md:grid-cols-[68px_1fr] gap-x-4 md:gap-x-6">
-        <div className="sticky top-[10rem] self-start flex flex-col items-center text-center">
+        <div className="sticky top-[11.5rem] self-start flex flex-col items-center text-center">
           <p className="font-['Apfel_Grotezk'] text-lime-300 text-[1.2344rem] leading-none mb-2">
             {weekday}
           </p>
