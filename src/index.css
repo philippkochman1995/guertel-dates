@@ -30,6 +30,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "Inter";
+  src: url("../font/Apfel Grotezk Font/Inter_18pt-SemiBold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
