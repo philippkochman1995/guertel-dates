@@ -46,6 +46,22 @@ export function getTodayISOInTimeZone(timeZone = VIENNA_TIME_ZONE, now = new Dat
   return toIsoDateInTimeZone(now, timeZone);
 }
 
+export function addDaysToIsoDateInUtc(isoDate: string, days: number): string {
+  return addDaysToIsoDate(isoDate, days);
+}
+
+export function getHourInTimeZone(timeZone = VIENNA_TIME_ZONE, now = new Date()): number {
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hour: "2-digit",
+    hourCycle: "h23",
+  });
+  const parts = formatter.formatToParts(now);
+  const hourValue = parts.find((part) => part.type === "hour")?.value ?? "0";
+  const hour = Number(hourValue);
+  return Number.isNaN(hour) ? 0 : hour;
+}
+
 export function formatDateLabel(
   dateStr: string,
   options?: {

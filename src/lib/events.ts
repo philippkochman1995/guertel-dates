@@ -1,7 +1,8 @@
 import type { Event } from "@/types/event";
-import { getTodayISOInTimeZone } from "@/lib/dates";
+import { addDaysToIsoDateInUtc, getHourInTimeZone, getTodayISOInTimeZone } from "@/lib/dates";
 
 const TBA_TIME = "TBA";
+const PREVIOUS_DAY_VISIBILITY_UNTIL_HOUR = 6;
 
 function timeToMinutes(time: string): number {
   const normalized = time.trim().toUpperCase();
@@ -30,7 +31,13 @@ export function compareEventsChronologically(a: Event, b: Event): number {
 
 export function filterFutureEvents(events: Event[], timeZone: string, now = new Date()): Event[] {
   const todayIso = getTodayISOInTimeZone(timeZone, now);
-  return events.filter((event) => event.date >= todayIso);
+  const localHour = getHourInTimeZone(timeZone, now);
+  const earliestVisibleDate =
+    localHour < PREVIOUS_DAY_VISIBILITY_UNTIL_HOUR
+      ? addDaysToIsoDateInUtc(todayIso, -1)
+      : todayIso;
+
+  return events.filter((event) => event.date >= earliestVisibleDate);
 }
 
 export function groupEventsByDate(events: Event[]): Map<string, Event[]> {

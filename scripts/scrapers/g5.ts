@@ -4,6 +4,7 @@ import { normalizeDescription, normalizeWhitespace } from "../lib/normalize";
 import type { Event } from "../types";
 
 export const G5_ALL_EVENTS_URL = "https://g5musicgroup.at/all-events/";
+const CANONICAL_G5_LOCATION = "G5 – Live Music Bar";
 
 type FetchLike = typeof fetch;
 
@@ -132,6 +133,23 @@ function parseG5Time(value: string): string {
   return `${String(hours).padStart(2, "0")}:${minutes}`;
 }
 
+function normalizeG5Location(value: string): string {
+  const normalized = normalizeWhitespace(value);
+  if (!normalized) {
+    return CANONICAL_G5_LOCATION;
+  }
+
+  if (/^u4\b/i.test(normalized)) {
+    return CANONICAL_G5_LOCATION;
+  }
+
+  if (/^g5\b/i.test(normalized)) {
+    return CANONICAL_G5_LOCATION;
+  }
+
+  return normalized;
+}
+
 function extractMaxPagesFromHtml(html: string): number {
   const $ = cheerio.load(html);
   const raw = normalizeWhitespace($("#ep-loadmore-events").attr("data-max") ?? "");
@@ -159,9 +177,10 @@ function extractOverviewEventsFromHtml(html: string, sourceUrl: string): G5Overv
       return;
     }
 
-    const location =
+    const location = normalizeG5Location(
       normalizeWhitespace(item.find(".ep-text-muted").first().text()) ||
-      "G5 - Live Music Bar";
+      CANONICAL_G5_LOCATION,
+    );
 
     const description = normalizeDescription(
       normalizeWhitespace(item.find(".ep-box-list-desc").first().text()),
@@ -270,7 +289,9 @@ function parseDetailEventDataFromHtml(html: string, overview: G5OverviewEvent): 
     stringValue(getNestedValue(eventRecord, ["description"])) || overview.description,
   );
   const eventUrl = stringValue(getNestedValue(eventRecord, ["event_url"])) || overview.url;
-  const location = stringValue(getNestedValue(eventRecord, ["venue_details", "name"])) || overview.location;
+  const location = normalizeG5Location(
+    stringValue(getNestedValue(eventRecord, ["venue_details", "name"])) || overview.location,
+  );
 
   const unixDateTime = dateTimeFromUnixSeconds(getNestedValue(eventRecord, ["em_start_date_time"]));
   const fallbackDateFromString =
@@ -286,7 +307,7 @@ function parseDetailEventDataFromHtml(html: string, overview: G5OverviewEvent): 
     : overview.image ?? "";
 
   return {
-    location: location || "G5 - Live Music Bar",
+    location: location || CANONICAL_G5_LOCATION,
     title,
     description,
     date,
@@ -409,6 +430,7 @@ export async function scrapeG5Events(fetchImpl: FetchLike = fetch): Promise<Even
 export const __g5Internals = {
   parseG5DateToIso,
   parseG5Time,
+  normalizeG5Location,
   extractOverviewEventsFromHtml,
   extractMaxPagesFromHtml,
   parseDetailEventDataFromHtml,

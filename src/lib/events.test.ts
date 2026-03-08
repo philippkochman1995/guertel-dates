@@ -57,6 +57,48 @@ describe("events", () => {
     expect(filtered.some((event) => event.title === "PAST")).toBe(false);
   });
 
+  it("keeps previous-day events shortly after midnight in Vienna", () => {
+    const now = new Date("2026-02-28T23:30:00Z");
+    const filtered = filterFutureEvents(
+      [
+        ...baseEvents,
+        {
+          location: "Chelsea Wien",
+          title: "YESTERDAY",
+          description: "",
+          date: "2026-02-28",
+          time: "23:00",
+          event_url: "https://example.com/yesterday",
+        },
+      ],
+      "Europe/Vienna",
+      now,
+    );
+
+    expect(filtered.some((event) => event.title === "YESTERDAY")).toBe(true);
+  });
+
+  it("hides previous-day events once morning grace period is over", () => {
+    const now = new Date("2026-03-01T07:00:00Z");
+    const filtered = filterFutureEvents(
+      [
+        ...baseEvents,
+        {
+          location: "Chelsea Wien",
+          title: "YESTERDAY",
+          description: "",
+          date: "2026-02-28",
+          time: "23:00",
+          event_url: "https://example.com/yesterday",
+        },
+      ],
+      "Europe/Vienna",
+      now,
+    );
+
+    expect(filtered.some((event) => event.title === "YESTERDAY")).toBe(false);
+  });
+
   it("groups events by day", () => {
     const grouped = groupEventsByDate(baseEvents);
 

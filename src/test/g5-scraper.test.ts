@@ -20,7 +20,7 @@ describe("g5 scraper", () => {
         </a>
         <div class="ep-mb-2 ep-text-small ep-text-muted ep-text-truncate">G5 - Live Music Bar</div>
         <div class="ep-event-list-view-action">
-          <span class="ep-event-date">Di., 03 März,</span>
+          <span class="ep-event-date">Di., 03 März 2026</span>
           <span>07:00 PM</span>
         </div>
         <div class="ep-box-list-desc">LIVE - Cravings / Mad Prophet / Midnight Fever</div>
@@ -38,7 +38,7 @@ describe("g5 scraper", () => {
       url: "https://g5musicgroup.at/all-events/?event=1720",
       date: "2026-03-03",
       time: "19:00",
-      location: "G5 - Live Music Bar",
+      location: "G5 – Live Music Bar",
       image: "https://g5musicgroup.at/wp-content/uploads/2026/01/03.03.2026-Flyer-3.jpg",
     });
     expect(maxPages).toBe(4);
@@ -78,7 +78,7 @@ describe("g5 scraper", () => {
     });
 
     expect(parsed).toMatchObject({
-      location: "G5 - Live Music Bar",
+      location: "G5 – Live Music Bar",
       title: "G5 Rock Night",
       description: "LIVE - Cravings / Mad Prophet / Midnight Fever",
       date: "2026-03-03",
@@ -86,5 +86,10 @@ describe("g5 scraper", () => {
       event_url: "https://g5musicgroup.at/all-events/?event=1720",
       image: "https://g5musicgroup.at/wp-content/uploads/2026/01/03.03.2026-Flyer-3.jpg",
     });
+  });
+
+  it("normalizes U4 and G5 venue variants to the canonical G5 location", () => {
+    expect(__g5Internals.normalizeG5Location("U4 Vienna")).toBe("G5 – Live Music Bar");
+    expect(__g5Internals.normalizeG5Location("G5 - Live Music Bar")).toBe("G5 – Live Music Bar");
   });
 });

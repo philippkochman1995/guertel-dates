@@ -7,6 +7,29 @@ import { getTodayISOInTimeZone, VIENNA_TIME_ZONE } from '@/lib/dates';
 import { compareEventsChronologically, filterFutureEvents, groupEventsByDate } from '@/lib/events';
 import eventsData from '@/data/events.json';
 
+const EXCLUDED_FILTER_LOCATIONS = new Set(['U4']);
+const LOFT_FILTER_VARIANTS = new Set(['LOFT OBEN', 'LOFT UNTEN', 'LOFT WOHNZIMMER']);
+const CAFE_CONCERTO_FILTER_PREFIX = 'CAFE CONCERTO';
+
+function normalizeLocationForFilter(location: string): string {
+  const normalized = location.trim();
+  const upper = normalized.toUpperCase();
+
+  if (EXCLUDED_FILTER_LOCATIONS.has(upper)) {
+    return '';
+  }
+
+  if (LOFT_FILTER_VARIANTS.has(upper)) {
+    return 'LOFT';
+  }
+
+  if (upper.startsWith(CAFE_CONCERTO_FILTER_PREFIX)) {
+    return 'CAFE CONCERTO';
+  }
+
+  return normalized;
+}
+
 function formatMonthLabel(date: string): string {
   const parsed = new Date(`${date}T00:00:00Z`);
   const parts = new Intl.DateTimeFormat('en-US', {
@@ -46,18 +69,29 @@ const Index = () => {
     [],
   );
   const allLocations = useMemo(
-    () => Array.from(new Set(futureEvents.map((event) => event.location))).sort((a, b) => a.localeCompare(b, 'de')),
+    () =>
+      Array.from(
+        new Set(
+          futureEvents
+            .map((event) => normalizeLocationForFilter(event.location))
+            .filter((location) => location.length > 0),
+        ),
+      ).sort((a, b) => a.localeCompare(b, 'de')),
     [futureEvents],
   );
-  const [hiddenLocations, setHiddenLocations] = useState<string[]>([]);
-  const [draftHiddenLocations, setDraftHiddenLocations] = useState<string[]>([]);
-  const draftHiddenLocationsRef = useRef(draftHiddenLocations);
-  const hiddenLocationSet = useMemo(() => new Set(hiddenLocations), [hiddenLocations]);
-  const draftHiddenLocationSet = useMemo(() => new Set(draftHiddenLocations), [draftHiddenLocations]);
-  const filteredEvents = useMemo(
-    () => futureEvents.filter((event) => !hiddenLocationSet.has(event.location)),
-    [futureEvents, hiddenLocationSet],
-  );
+  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
+  const [draftSelectedLocations, setDraftSelectedLocations] = useState<string[]>([]);
+  const draftSelectedLocationsRef = useRef(draftSelectedLocations);
+  const selectedLocationSet = useMemo(() => new Set(selectedLocations), [selectedLocations]);
+  const draftSelectedLocationSet = useMemo(() => new Set(draftSelectedLocations), [draftSelectedLocations]);
+  const isFilterActive = selectedLocations.length > 0 && selectedLocations.length < allLocations.length;
+  const filteredEvents = useMemo(() => {
+    if (!isFilterActive) {
+      return futureEvents;
+    }
+
+    return futureEvents.filter((event) => selectedLocationSet.has(normalizeLocationForFilter(event.location)));
+  }, [futureEvents, isFilterActive, selectedLocationSet]);
   const groupedEvents = useMemo(() => groupEventsByDate(filteredEvents), [filteredEvents]);
 
   const groupedEntries = Array.from(groupedEvents.entries());
@@ -90,31 +124,27 @@ const Index = () => {
   }, [groupedEntries]);
   const allAnchorIds = useMemo(() => groupedEntries.map(([date]) => `date-${date}`), [groupedEntries]);
   const [activeAnchorId, setActiveAnchorId] = useState<string>(allAnchorIds[0] ?? '');
-  const areAllDraftLocationsVisible = draftHiddenLocations.length === 0;
+  const areAllDraftLocationsSelected = allLocations.length > 0 && draftSelectedLocations.length === allLocations.length;
   const [isVenueFilterOpen, setIsVenueFilterOpen] = useState(false);
 
   const openVenueFilter = () => {
-    setDraftHiddenLocations(hiddenLocations);
+    setDraftSelectedLocations(selectedLocations);
     setIsVenueFilterOpen(true);
   };
 
   const closeVenueFilter = () => {
-    setHiddenLocations(draftHiddenLocationsRef.current);
+    const draftSelection = draftSelectedLocationsRef.current;
+    const shouldResetToNoFilter = draftSelection.length === 0 || draftSelection.length === allLocations.length;
+    setSelectedLocations(shouldResetToNoFilter ? [] : draftSelection);
     setIsVenueFilterOpen(false);
   };
 
   const toggleAllLocations = () => {
-    setDraftHiddenLocations((previous) => {
-      if (previous.length === 0) {
-        return [...allLocations];
-      }
-
-      return [];
-    });
+    setDraftSelectedLocations((previous) => (previous.length === allLocations.length ? [] : [...allLocations]));
   };
 
   const toggleLocation = (location: string) => {
-    setDraftHiddenLocations((previous) => {
+    setDraftSelectedLocations((previous) => {
       if (previous.includes(location)) {
         return previous.filter((item) => item !== location);
       }
@@ -189,8 +219,8 @@ const Index = () => {
   }, [allAnchorIds]);
 
   useEffect(() => {
-    draftHiddenLocationsRef.current = draftHiddenLocations;
-  }, [draftHiddenLocations]);
+    draftSelectedLocationsRef.current = draftSelectedLocations;
+  }, [draftSelectedLocations]);
 
   useEffect(() => {
     if (!isVenueFilterOpen) {
@@ -202,7 +232,9 @@ const Index = () => {
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setHiddenLocations(draftHiddenLocationsRef.current);
+        const draftSelection = draftSelectedLocationsRef.current;
+        const shouldResetToNoFilter = draftSelection.length === 0 || draftSelection.length === allLocations.length;
+        setSelectedLocations(shouldResetToNoFilter ? [] : draftSelection);
         setIsVenueFilterOpen(false);
       }
     };
@@ -213,7 +245,7 @@ const Index = () => {
       document.body.style.overflow = previousBodyOverflow;
       window.removeEventListener('keydown', handleEscape);
     };
-  }, [isVenueFilterOpen]);
+  }, [allLocations.length, isVenueFilterOpen]);
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -309,7 +341,7 @@ const Index = () => {
               type="button"
               onClick={toggleAllLocations}
               className={`mb-5 inline-flex items-center gap-2 border px-3 py-1 text-[0.78rem] uppercase tracking-[0.12em] font-['Inter'] ${
-                areAllDraftLocationsVisible
+                areAllDraftLocationsSelected
                   ? 'border-white bg-white text-black'
                   : 'border-zinc-500 text-zinc-300 bg-zinc-800 hover:bg-zinc-700 hover:text-white'
               }`}
@@ -319,16 +351,16 @@ const Index = () => {
 
             <div className="flex flex-wrap gap-2">
               {allLocations.map((location) => {
-                const isVisible = !draftHiddenLocationSet.has(location);
+                const isSelected = draftSelectedLocationSet.has(location);
 
                 return (
                   <button
                     key={location}
                     type="button"
-                    aria-pressed={isVisible}
+                    aria-pressed={isSelected}
                     onClick={() => toggleLocation(location)}
                     className={`border px-3 py-2 font-['Inter'] text-[0.9rem] uppercase tracking-[0.08em] transition-colors ${
-                      isVisible
+                      isSelected
                         ? 'border-white bg-white text-black'
                         : 'border-zinc-500 text-zinc-300 bg-zinc-800 hover:bg-zinc-700 hover:text-white'
                     }`}

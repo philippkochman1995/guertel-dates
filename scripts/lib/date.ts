@@ -23,6 +23,25 @@ export function getTodayISOInTimeZone(timeZone = VIENNA_TIME_ZONE, now = new Dat
   return toIsoDateInTimeZone(now, timeZone);
 }
 
+export function addDaysToIsoDateInUtc(isoDate: string, days: number): string {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  date.setUTCDate(date.getUTCDate() + days);
+  return toIsoDateInTimeZone(date, "UTC");
+}
+
+export function getHourInTimeZone(timeZone = VIENNA_TIME_ZONE, now = new Date()): number {
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hour: "2-digit",
+    hourCycle: "h23",
+  });
+  const parts = formatter.formatToParts(now);
+  const hourValue = parts.find((part) => part.type === "hour")?.value ?? "0";
+  const hour = Number(hourValue);
+  return Number.isNaN(hour) ? 0 : hour;
+}
+
 export function parseEuropeanDateToIso(
   value: string,
   options?: {

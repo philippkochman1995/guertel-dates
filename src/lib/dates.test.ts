@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDateLabel, getTodayISOInTimeZone, VIENNA_TIME_ZONE } from "./dates";
+import { addDaysToIsoDateInUtc, formatDateLabel, getHourInTimeZone, getTodayISOInTimeZone, VIENNA_TIME_ZONE } from "./dates";
 
 describe("dates", () => {
   it("returns TODAY and TOMORROW labels in Vienna timezone", () => {
@@ -21,5 +21,16 @@ describe("dates", () => {
     const nearMidnightUtc = new Date("2026-03-01T23:30:00Z");
 
     expect(getTodayISOInTimeZone(VIENNA_TIME_ZONE, nearMidnightUtc)).toBe("2026-03-02");
+  });
+
+  it("returns the local hour for a timezone", () => {
+    const nearMidnightUtc = new Date("2026-03-01T23:30:00Z");
+
+    expect(getHourInTimeZone(VIENNA_TIME_ZONE, nearMidnightUtc)).toBe(0);
+  });
+
+  it("adds and subtracts days from ISO dates in UTC", () => {
+    expect(addDaysToIsoDateInUtc("2026-03-01", -1)).toBe("2026-02-28");
+    expect(addDaysToIsoDateInUtc("2026-03-01", 1)).toBe("2026-03-02");
   });
 });

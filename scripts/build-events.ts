@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { dedupeEvents } from "./lib/dedupe";
-import { getTodayISOInTimeZone, VIENNA_TIME_ZONE } from "./lib/date";
+import { addDaysToIsoDateInUtc, getHourInTimeZone, getTodayISOInTimeZone, VIENNA_TIME_ZONE } from "./lib/date";
 import { normalizeEvents } from "./lib/normalize";
 import { validateEvents } from "./lib/validate";
 import { scrapeChelseaEvents } from "./scrapers/chelsea";
@@ -18,6 +18,7 @@ import { scrapeG5Events } from "./scrapers/g5";
 import type { Event } from "./types";
 
 const OUTPUT_PATH = path.resolve(process.cwd(), "src/data/events.json");
+const PREVIOUS_DAY_VISIBILITY_UNTIL_HOUR = 6;
 
 function timeToMinutes(value: string): number {
   const match = value.match(/^([01]?\d|2[0-3]):([0-5]\d)$/);
@@ -42,7 +43,12 @@ function sortEvents(events: Event[]): Event[] {
 
 function filterFutureEvents(events: Event[]): Event[] {
   const todayIso = getTodayISOInTimeZone(VIENNA_TIME_ZONE);
-  return events.filter((event) => event.date >= todayIso);
+  const localHour = getHourInTimeZone(VIENNA_TIME_ZONE);
+  const earliestVisibleDate =
+    localHour < PREVIOUS_DAY_VISIBILITY_UNTIL_HOUR
+      ? addDaysToIsoDateInUtc(todayIso, -1)
+      : todayIso;
+  return events.filter((event) => event.date >= earliestVisibleDate);
 }
 
 async function run(): Promise<void> {
